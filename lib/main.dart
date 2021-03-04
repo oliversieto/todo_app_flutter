@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'models/item.dart';
 
@@ -22,17 +25,29 @@ class App extends StatelessWidget {
 class HomePage extends StatefulWidget {
   var items = <Item>[];
 
-  HomePage() {
-    items.add(Item(title: 'Banana', done: false));
-    items.add(Item(title: 'Abacate', done: true));
-    items.add(Item(title: 'Laranja', done: false));
-  }
   @override
   _HomePageState createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
   var newTaskCtrl = TextEditingController();
+
+  _HomePageState() {
+    load();
+  }
+
+  Future load() async {
+    var prefs = await SharedPreferences.getInstance();
+    var data = prefs.getString('data');
+
+    if (data != null) {
+      Iterable decoded = jsonDecode(data);
+      List<Item> result = decoded.map((e) => Item.fromJson(e)).toList();
+      setState(() {
+        widget.items = result;
+      });
+    }
+  }
 
   void add() {
     if (newTaskCtrl.text.isEmpty) {
